@@ -199,7 +199,7 @@ Contributions to this project are welcome! Please feel free to open issues, subm
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. (You'll need to create a LICENSE file and choose an appropriate license).
 
 ## Acknowledgements
-This project is based on research from the paper "Agentic AI: Securing Interactions in Multi-Agent Systems through Decentralized Identifiers and Zero-Knowledge Proofs" and builds upon concepts and technologies from the decentralized identity and blockchain communities, including:
+This project is based on research from the paper "Agent ID: Securing Interactions in Multi-Agent Systems through Decentralized Identifiers and Zero-Knowledge Proofs" and builds upon concepts and technologies from the decentralized identity and blockchain communities, including:
 * [Decentralized Identifiers (DIDs) v1.0](https://www.w3.org/TR/did-core/)
 * [Verifiable Credentials Data Model 1.0](https://www.w3.org/TR/vc-data-model/)
 * [Web3.py](https://web3py.readthedocs.io/)
