@@ -1,0 +1,127 @@
+
+.DS_Store
+._*
+Thumbs.db
+
+# Node Modules #
+#################
+node_modules/
+
+# Build and Artifacts #
+########################
+build/
+artifacts/
+cache/
+
+# Hardhat specific #
+####################
+hardhat-debug.log
+coverage/
+coverage.json
+
+# Python #
+##########
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyproject.toml (forাধি projects that use it)
+# If you don't use it, you can remove this line
+pyproject.toml
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDE - VSCode #
+##################
+.vscode/
+
+# Security (private keys, etc.) #
+###################################
+*.key # Private keys - NEVER commit these!
+*.pem # Also, often used for private keys
+*.secret # Any other files with sensitive information
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.project
+.classpath
+*.launch
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Other common files to ignore
+*.bak
+*.swp
+*~
+*.tmp
+*.orig
+*.rej
+*.diff
+*.patch
+
+# dotenv environment variables file
+.env
+
