@@ -3,7 +3,7 @@
 
 This repository contains the Agentic AI SDK, a Python-based toolkit for building agentic applications that leverage decentralized identifiers (DIDs) and zero-knowledge proofs (ZKPs) for enhanced security, privacy, and interoperability. This SDK implements the concepts and architecture outlined in the research paper:
 
-> **Agentic AI: Securing Interactions in Multi-Agent Systems through Decentralized Identifiers and Zero-Knowledge Proofs**
+> **Agent ID: Securing Interactions in Multi-Agent Systems through Decentralized Identifiers and Zero-Knowledge Proofs**
 
 ## Research Paper Summary
 
