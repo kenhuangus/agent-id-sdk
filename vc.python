@@ -1,0 +1,80 @@
+import jwt
+import requests
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+import os
+import urllib3
+
+# Disable insecure request warnings (only for development with self-signed certs)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+class DID:
+    def __init__(self):
+        self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        self.public_key = self.private_key.public_key()
+        self.id = f"did:example:{os.urandom(16).hex()}"
+
+class VC:
+    def __init__(self, did, claims):
+        self.did = did
+        self.issuer = "did:example:issuer"
+        self.subject = did.id
+        self.claims = claims
+
+def generate_zkp(vc, challenge):
+    message = f"{vc.claims['access']}:{challenge}".encode()
+    signature = vc.did.private_key.sign(
+        message,
+        padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH),
+        hashes.SHA256()
+    )
+    return signature
+
+def register_public_key(did, op_url):
+    public_key_pem = did.public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    response = requests.post(f"{op_url}/register_key", 
+                             json={'did': did.id, 'public_key': public_key_pem.decode()},
+                             verify=False)  # In production, always verify SSL certificates
+    response.raise_for_status()
+
+def authenticate_with_op(did, vc, op_url):
+    challenge_response = requests.get(f"{op_url}/challenge", verify=False)
+    challenge_response.raise_for_status()
+    challenge = challenge_response.json()['challenge']
+
+    zkp = generate_zkp(vc, challenge)
+
+    auth_data = {
+        'did': did.id,
+        'zkp': zkp.hex(),
+        'vc_claims': vc.claims
+    }
+    headers = {'X-Challenge': challenge}
+    auth_response = requests.post(f"{op_url}/authenticate", json=auth_data, headers=headers, verify=False)
+    auth_response.raise_for_status()
+    return auth_response.json()['jwt']
+
+def get_oauth_token(jwt_token, op_url):
+    token_response = requests.post(f"{op_url}/token", json={'jwt': jwt_token}, verify=False)
+    token_response.raise_for_status()
+    return token_response.json()['access_token'], token_response.json()['resource']
+
+def main():
+    did = DID()
+    vc = VC(did, {'access': 'Ken'})
+    op_url = 'https://localhost:5000'
+
+    try:
+        register_public_key(did, op_url)
+        jwt_token = authenticate_with_op(did, vc, op_url)
+        oauth_token, resource = get_oauth_token(jwt_token, op_url)
+        print(f"OAuth Token: {oauth_token}")
+        print(f"Accessed Resource: {resource}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
