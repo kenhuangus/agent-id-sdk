@@ -75,7 +75,7 @@ agent_sdk_project/
 **Prerequisites:**
 
 *   **Node.js and npm:** Install from [https://nodejs.org/](https://nodejs.org/)
-*   **Python 3.7+:** Install from [https://www.python.org/](https://www.python.org/)
+*   **Python 3.12+:** Install from [https://www.python.org/](https://www.python.org/)
 *   **Hardhat:** A development environment for Ethereum smart contracts.
 
 **Steps:**
