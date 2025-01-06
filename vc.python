@@ -4,47 +4,68 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import os
 import urllib3
+import json
 
 # Disable insecure request warnings (only for development with self-signed certs)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class DID:
     def __init__(self):
+        print("Step 1: Generating DID")
         self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         self.public_key = self.private_key.public_key()
         self.id = f"did:example:{os.urandom(16).hex()}"
+        print(f"DID generated: {self.id}")
 
 class VC:
     def __init__(self, did, claims):
+        print("\nStep 2: Creating Verifiable Credential")
         self.did = did
         self.issuer = "did:example:issuer"
         self.subject = did.id
         self.claims = claims
+        print(f"VC created for subject: {self.subject}")
+        print(f"VC claims: {self.claims}")
 
 def generate_zkp(vc, challenge):
+    print(f"Generating ZKP for challenge: {challenge}")
     message = f"{vc.claims['access']}:{challenge}".encode()
     signature = vc.did.private_key.sign(
         message,
         padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH),
         hashes.SHA256()
     )
+    print(f"ZKP generated: {signature.hex()[:20]}...")
     return signature
 
 def register_public_key(did, op_url):
+    print(f"\nStep 3: Registering public key with OP")
+    print(f"OP URL: {op_url}")
     public_key_pem = did.public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    response = requests.post(f"{op_url}/register_key", 
-                             json={'did': did.id, 'public_key': public_key_pem.decode()},
-                             verify=False)  # In production, always verify SSL certificates
+    data = {'did': did.id, 'public_key': public_key_pem.decode()}
+    print(f"Request data: {json.dumps(data, indent=2)}")
+    
+    response = requests.post(f"{op_url}/register_key", json=data, verify=False)
+    print(f"Response status: {response.status_code}")
+    print(f"Response body: {json.dumps(response.json(), indent=2)}")
     response.raise_for_status()
+    print("Public key registered successfully")
 
 def authenticate_with_op(did, vc, op_url):
+    print(f"\nStep 4: Starting authentication with OP")
+    print(f"OP URL: {op_url}")
+    
+    print("Step 4.1: Requesting challenge")
     challenge_response = requests.get(f"{op_url}/challenge", verify=False)
+    print(f"Challenge response status: {challenge_response.status_code}")
+    print(f"Challenge response body: {json.dumps(challenge_response.json(), indent=2)}")
     challenge_response.raise_for_status()
     challenge = challenge_response.json()['challenge']
 
+    print("\nStep 4.2: Generating ZKP")
     zkp = generate_zkp(vc, challenge)
 
     auth_data = {
@@ -53,12 +74,24 @@ def authenticate_with_op(did, vc, op_url):
         'vc_claims': vc.claims
     }
     headers = {'X-Challenge': challenge}
+    print(f"\nStep 4.3: Sending authentication request")
+    print(f"Request headers: {json.dumps(headers, indent=2)}")
+    print(f"Request data: {json.dumps(auth_data, indent=2)}")
     auth_response = requests.post(f"{op_url}/authenticate", json=auth_data, headers=headers, verify=False)
+    print(f"Authentication response status: {auth_response.status_code}")
+    print(f"Authentication response body: {json.dumps(auth_response.json(), indent=2)}")
     auth_response.raise_for_status()
-    return auth_response.json()['jwt']
+    jwt_token = auth_response.json()['jwt']
+    print(f"Received JWT: {jwt_token[:20]}...")
+    return jwt_token
 
 def get_oauth_token(jwt_token, op_url):
-    token_response = requests.post(f"{op_url}/token", json={'jwt': jwt_token}, verify=False)
+    print(f"\nStep 5: Exchanging JWT for OAuth token")
+    data = {'jwt': jwt_token}
+    print(f"Request data: {json.dumps(data, indent=2)}")
+    token_response = requests.post(f"{op_url}/token", json=data, verify=False)
+    print(f"Token response status: {token_response.status_code}")
+    print(f"Token response body: {json.dumps(token_response.json(), indent=2)}")
     token_response.raise_for_status()
     return token_response.json()['access_token'], token_response.json()['resource']
 
@@ -71,6 +104,7 @@ def main():
         register_public_key(did, op_url)
         jwt_token = authenticate_with_op(did, vc, op_url)
         oauth_token, resource = get_oauth_token(jwt_token, op_url)
+        print(f"\nStep 6: Final Results")
         print(f"OAuth Token: {oauth_token}")
         print(f"Accessed Resource: {resource}")
     except requests.exceptions.RequestException as e:
